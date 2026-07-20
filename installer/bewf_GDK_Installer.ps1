@@ -507,21 +507,24 @@ Write-Host ""
 # Existing Install Check
 # --------------------------
 
-$manifest = Get-Content ".\AppxManifest.xml" -ErrorAction SilentlyContinue
+$identity = Select-String `
+    -Path ".\AppxManifest.xml" `
+    -Pattern 'Identity Name="([^"]+)"' |
+    Select-Object -First 1
 
 
-if ($manifest) {
+if ($identity) {
 
-    $packageName = Select-String `
-        -InputObject $manifest `
-        -Pattern "Identity Name" |
-        Select-Object -First 1
+    $packageName = $identity.Matches.Groups[1].Value
 
 
-    if ($packageName) {
+    $installed = Get-AppxPackage -Name $packageName -ErrorAction SilentlyContinue
+
+
+    if ($installed) {
 
         Write-Host ""
-        Write-Host "Possible existing installation detected." -ForegroundColor Yellow
+        Write-Host "Existing installation detected." -ForegroundColor Yellow
 
 
         $reinstall = Read-Host `

@@ -1,3 +1,6 @@
 @echo off
+cd /d "%~dp0"
 
-powershell -NoProfile -ExecutionPolicy Bypass -Command "irm https://raw.githubusercontent.com/bewf/GDKInstaller/main/launcher.ps1 | iex"
+powershell -NoProfile -ExecutionPolicy Bypass -File "%~dp0installer\bewf_GDK_Installer.ps1"
+
+pause
