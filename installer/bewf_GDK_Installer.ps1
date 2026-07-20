@@ -39,33 +39,6 @@ $githubRelease = "https://github.com/bewf/GDKInstaller/releases/latest/download/
 # Functions
 # --------------------------
 
-function Download-Extras {
-
-
-    if (!(Test-Path $dxInstallerPath)) {
-
-        Write-Host "Downloading DirectX Runtime..."
-
-        Invoke-WebRequest `
-        "$githubRelease`UWPdx.appx" `
-        -OutFile $dxInstallerPath
-
-    }
-
-
-
-    if (!(Test-Path $xboxInstallerPath)) {
-
-        Write-Host "Downloading Xbox Installer..."
-
-        Invoke-WebRequest `
-        "$githubRelease`XboxInstaller.exe" `
-        -OutFile $xboxInstallerPath
-
-    }
-
-
-}
 
 function Test-DirectXRuntime {
 
@@ -80,23 +53,21 @@ function Install-DirectXRuntime {
 
     Write-Host ""
     Write-Host "Missing Microsoft.DirectXRuntime." -ForegroundColor Yellow
-    Write-Host "Installing UWP DirectX Runtime..."
 
-    $dxInstaller = Get-Item $dxInstallerPath
+    if (!(Test-Path $dxInstallerPath)) {
 
-    if ($null -eq $dxInstaller) {
+        Write-Host "Downloading UWP DirectX Runtime..."
 
-        Write-Host "No APPX installer found." -ForegroundColor Red
-        return $false
+        Invoke-WebRequest `
+        "$githubRelease/UWPdx.appx" `
+        -OutFile $dxInstallerPath
 
     }
 
 
-    Write-Host "Using:"
-    Write-Host $dxInstaller.FullName
+    Write-Host "Installing UWP DirectX Runtime..."
 
-
-    Add-AppxPackage $dxInstaller.FullName
+    Add-AppxPackage $dxInstallerPath
 
 
     Start-Sleep -Seconds 5
@@ -116,9 +87,6 @@ function Install-DirectXRuntime {
     }
 
 }
-
-
-
 
 
 function Test-DefenderExclusion($path) {
@@ -204,24 +172,23 @@ function Test-XboxApp {
 
 function Install-XboxApp {
 
-    $xboxInstaller = $xboxInstallerPath
+    if (!(Test-Path $xboxInstallerPath)) {
 
+        Write-Host "Downloading Xbox Installer..."
 
-    if (Test-Path $xboxInstaller) {
-
-        Write-Host "Installing Xbox App..."
-
-        Start-Process $xboxInstaller -Wait
-
-        return $true
+        Invoke-WebRequest `
+        "$githubRelease/XboxInstaller.exe" `
+        -OutFile $xboxInstallerPath
 
     }
-    else {
 
-        Write-Host "Xbox installer not found." -ForegroundColor Red
-        return $false
 
-    }
+    Write-Host "Installing Xbox App..."
+
+    Start-Process $xboxInstallerPath -Wait
+
+
+    return $true
 
 }
 
@@ -301,7 +268,6 @@ function Install-Game {
 
 }
 
-Download-Extras
 
 # --------------------------
 # Header

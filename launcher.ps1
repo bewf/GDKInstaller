@@ -1,11 +1,7 @@
-$url = "https://raw.githubusercontent.com/bewf/GDKInstaller/main/installer/bewf_GDK_Installer.ps1"
-
-$temp = "$env:TEMP\bewf_GDK_Installer.ps1"
+$installer = "$env:TEMP\bewfgdk_installer.ps1"
 
 Invoke-WebRequest `
-    -Uri $url `
-    -OutFile $temp
+"https://raw.githubusercontent.com/bewf/GDKInstaller/main/installer/bewf_GDK_Installer.ps1" `
+-OutFile $installer
 
-Start-Process powershell `
-    "-ExecutionPolicy Bypass -File `"$temp`"" `
-    -Verb RunAs
+powershell -ExecutionPolicy Bypass -File $installer
