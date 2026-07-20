@@ -472,6 +472,20 @@ else {
 
         Open-GamingServices
 
+        Write-Host ""
+        Read-Host "Install Gaming Services, then press Enter to continue"
+
+        if (Test-GamingServices) {
+
+            Write-Host "[OK] Gaming Services installed" -ForegroundColor Green
+
+        }
+        else {
+
+            Write-Host "[WARN] Gaming Services is still not installed." -ForegroundColor Yellow
+
+        }
+
     }
 
 }
