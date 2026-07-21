@@ -12,8 +12,6 @@ A simple automated installer for GDK games from OFME.
    - Checks that the GDK package contains:
      - `wdapp.exe`
      - `AppxManifest.xml`
-   - Says if the game contains:
-     - `OnlineFix64.dll`
 
 2. **Checks requirements**
    - Checks for:
