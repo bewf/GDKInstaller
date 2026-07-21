@@ -421,9 +421,9 @@ if ($searchJob -and $searchJob.State -eq "Completed") {
 
         Start-Sleep -Seconds 2
 
-        $answer = Read-Host "Is this the game you want to install? (Y/N)"
+        $answer = Read-Host "Is this the game you want to install? (Y/n)"
 
-        if ($answer -eq "Y") {
+        if ($answer -eq "" -or $answer -match "^[Yy]$") {
             $stopSearch = $true
             break
         }
@@ -515,10 +515,10 @@ else {
 
 
     $answer = Read-Host `
-    "Add an exclusion for this game folder? (Y/N)"
+    "Add an exclusion for this game folder? (Y/n)"
 
 
-    if ($answer -eq "Y") {
+    if ($answer -eq "" -or $answer -match "^[Yy]$") {
 
         if (Add-GameExclusion $game.Path) {
 
@@ -555,9 +555,9 @@ else {
 
     Write-Host "[WARN] Xbox App missing" -ForegroundColor Yellow
 
-    $answer = Read-Host "Install Xbox App now? (Y/N)"
+    $answer = Read-Host "Install Xbox App now? (Y/n)"
 
-    if ($answer -eq "Y") {
+    if ($answer -eq "" -or $answer -match "^[Yy]$") {
 
     if (!(Install-XboxApp)) {
 
@@ -581,9 +581,9 @@ else {
 
     Write-Host "[WARN] Gaming Services missing" -ForegroundColor Yellow
 
-    $answer = Read-Host "Open Gaming Services installer? (Y/N)"
+    $answer = Read-Host "Open Gaming Services installer? (Y/n)"
 
-    if ($answer -eq "Y") {
+    if ($answer -eq "" -or $answer -match "^[Yy]$") {
 
         Open-GamingServices
 
@@ -616,9 +616,9 @@ else {
 
     Write-Host "[WARN] DirectX Runtime missing" -ForegroundColor Yellow
 
-    $answer = Read-Host "Install UWP DirectX Runtime now? (Y/N)"
+    $answer = Read-Host "Install UWP DirectX Runtime now? (Y/n)"
 
-    if ($answer -eq "Y") {
+    if ($answer -eq "" -or $answer -match "^[Yy]$") {
 
         Install-DirectXRuntime
 
@@ -657,14 +657,14 @@ if ($identity) {
 
 
         $reinstall = Read-Host `
-        "Continue and reinstall? (Y/N)"
+        "Continue and reinstall? (Y/n)"
 
 
-        if ($reinstall -ne "Y") {
+        if (!($reinstall -eq "" -or $reinstall -match "^[Yy]$")) {
 
-            $again = Read-Host "Would you like to install another game? (Y/N)"
+            $again = Read-Host "Would you like to install another game? (Y/n)"
 
-            if ($again -eq "Y") {
+            if ($again -eq "" -or $again -match "^[Yy]$") {
 
                 Start-Process powershell "-ExecutionPolicy Bypass -File `"$PSCommandPath`""
             }
@@ -846,9 +846,9 @@ Write-Host "==================================="
 
 Pause
 
-$again = Read-Host "Would you like to install another game? (Y/N)"
+$again = Read-Host "Would you like to install another game? (Y/n)"
 
-if ($again -eq "Y") {
+if ($again -eq "" -or $again -match "^[Yy]$") {
 
     Start-Process powershell "-ExecutionPolicy Bypass -File `"$PSCommandPath`""
 
