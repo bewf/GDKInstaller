@@ -303,37 +303,146 @@ Write-Host "Searching for GDK games..."
 Write-Host "This may take a minute depending on drive speed."
 Write-Host ""
 
-
-$drives = Get-PSDrive -PSProvider FileSystem
-
 $games = @()
 
+$searchPaths = @()
 
-foreach ($drive in $drives) {
+# Priority folders
+$searchPaths += "$env:USERPROFILE\Downloads"
+$searchPaths += "$env:USERPROFILE\Desktop"
+
+# Check common game folders directly on each drive
+foreach ($drive in (Get-PSDrive -PSProvider FileSystem)) {
+
+    foreach ($folder in @("Games", "Game")) {
+
+        $possiblePath = Join-Path $drive.Root $folder
+
+        if (Test-Path $possiblePath) {
+
+            $searchPaths += $possiblePath
+
+        }
+
+    }
+
+}
+
+# Search all drives
+foreach ($drive in (Get-PSDrive -PSProvider FileSystem)) {
+
+    $searchPaths += $drive.Root
+
+}
+
+
+$searchPaths = $searchPaths | Select-Object -Unique
+
+
+$foundPaths = @{}
+$stopSearch = $false
+
+foreach ($path in $searchPaths) {
+
+    if ($stopSearch) {
+        break
+    }
+
+    if (!(Test-Path $path)) {
+        continue
+    }
 
     try {
 
-        Get-ChildItem $drive.Root `
+    $searchJob = Start-Job -ArgumentList $path {
+
+        param($scanPath)
+
+        Get-ChildItem $scanPath `
             -Filter "GDK_Helper.bat" `
             -File `
             -Recurse `
             -Force `
             -ErrorAction SilentlyContinue |
-
-        ForEach-Object {
-
-            $games += [PSCustomObject]@{
-                Name = Split-Path $_.DirectoryName -Leaf
-                Path = $_.DirectoryName
+            ForEach-Object {
+                $_.DirectoryName
             }
+
+    }
+
+
+    $time = 0
+
+    while ($searchJob.State -eq "Running") {
+
+        Start-Sleep -Milliseconds 500
+
+        $time += 500
+
+
+        if ($time -ge 10000) {
+
+            Stop-Job $searchJob
+            Receive-Job $searchJob -ErrorAction SilentlyContinue | Out-Null
+            Remove-Job $searchJob -Force
+
+            break
 
         }
 
     }
-    catch {}
 
+
+if ($searchJob -and $searchJob.State -eq "Completed") {
+
+    $results = Receive-Job $searchJob
+
+    $foundAny = $false
+
+    foreach ($gamePath in $results) {
+
+        if (!$foundPaths.ContainsKey($gamePath)) {
+
+            $foundPaths[$gamePath] = $true
+
+            Write-Host ""
+            Write-Host "Found: $gamePath" -ForegroundColor Green
+
+            $games += [PSCustomObject]@{
+                Name = Split-Path $gamePath -Leaf
+                Path = $gamePath
+            }
+
+            $foundAny = $true
+        }
+    }
+
+    if ($foundAny) {
+
+        Start-Sleep -Seconds 2
+
+        $answer = Read-Host "Is this the game you want to install? (Y/N)"
+
+        if ($answer -eq "Y") {
+            $stopSearch = $true
+            break
+        }
+
+        Write-Host "Continuing search..."
+    }
+
+    Remove-Job $searchJob -Force -ErrorAction SilentlyContinue
 }
 
+catch {}
+
+
+
+}
+catch {}
+}
+
+Write-Host ""
 
 if ($games.Count -eq 0) {
 
@@ -342,7 +451,6 @@ if ($games.Count -eq 0) {
     exit
 
 }
-
 
 
 Write-Host "Found $($games.Count) game(s)."
@@ -554,10 +662,14 @@ if ($identity) {
 
         if ($reinstall -ne "Y") {
 
-            Write-Host "Cancelled."
-            Pause
-            exit
+            $again = Read-Host "Would you like to install another game? (Y/N)"
 
+            if ($again -eq "Y") {
+
+                Start-Process powershell "-ExecutionPolicy Bypass -File `"$PSCommandPath`""
+            }
+
+            exit
         }
 
     }
@@ -733,4 +845,14 @@ else {
 Write-Host "==================================="
 
 Pause
+
+$again = Read-Host "Would you like to install another game? (Y/N)"
+
+if ($again -eq "Y") {
+
+    Start-Process powershell "-ExecutionPolicy Bypass -File `"$PSCommandPath`""
+
+}
+
+exit
 
