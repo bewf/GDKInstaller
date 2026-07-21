@@ -33,22 +33,19 @@ $dxInstallerPath = "$downloadFolder\UWPdx.appx"
 $xboxInstallerPath = "$downloadFolder\XboxInstaller.exe"
 
 
-$githubRelease = "https://github.com/bewf/GDKInstaller/releases/latest/download/"
+$githubRelease = "https://github.com/bewf/GDKInstaller/releases/download/v1.0"
 
 # --------------------------
 # Functions
 # --------------------------
 
-
 function Test-DirectXRuntime {
 
-    $dx = Get-AppxPackage -Name "Microsoft.DirectX*" 
+    $dx = Get-AppxPackage -Name "Microsoft.DirectX*"
 
     return ($null -ne $dx)
 
 }
-
-
 function Install-DirectXRuntime {
 
     Write-Host ""
@@ -59,8 +56,24 @@ function Install-DirectXRuntime {
         Write-Host "Downloading UWP DirectX Runtime..."
 
         Invoke-WebRequest `
-        "$githubRelease/UWPdx.appx" `
+        "https://github.com/bewf/GDKInstaller/releases/download/v1.0/UWPdx.appx" `
         -OutFile $dxInstallerPath
+
+    }
+
+
+    if (!(Test-Path $dxInstallerPath) -or (Get-Item $dxInstallerPath).Length -lt 50000000) {
+
+        Write-Host ""
+        Write-Host "Download failed. Invalid DirectX Runtime file." -ForegroundColor Red
+        Write-Host ""
+        Write-Host "You can manually download it here:"
+        Write-Host "https://github.com/bewf/GDKInstaller/releases/download/v1.0/UWPdx.appx"
+        Write-Host ""
+
+        Remove-Item $dxInstallerPath -Force -ErrorAction SilentlyContinue
+
+        return $false
 
     }
 
@@ -130,19 +143,6 @@ function Add-GameExclusion($path) {
 
 
 
-function Test-OnlineFix($path) {
-
-    $file = Get-ChildItem `
-        -Path $path `
-        -Filter "OnlineFix64.dll" `
-        -Recurse `
-        -ErrorAction SilentlyContinue
-
-
-    return ($null -ne $file)
-
-}
-
 
 
 function Test-GamingServices {
@@ -176,9 +176,24 @@ function Install-XboxApp {
 
         Write-Host "Downloading Xbox Installer..."
 
-        Invoke-WebRequest `
-        "$githubRelease/XboxInstaller.exe" `
-        -OutFile $xboxInstallerPath
+Invoke-WebRequest `
+https://github.com/bewf/GDKInstaller/releases/download/v1.0/XboxInstaller.exe `
+-OutFile $xboxInstallerPath
+
+if (!(Test-Path $xboxInstallerPath) -or (Get-Item $xboxInstallerPath).Length -lt 10000000) {
+
+    Write-Host ""
+    Write-Host "Download failed. Invalid Xbox Installer file." -ForegroundColor Red
+    Write-Host ""
+    Write-Host "You can manually download it here:"
+    Write-Host "https://github.com/bewf/GDKInstaller/releases/download/v1.0/XboxInstaller.exe"
+    Write-Host ""
+
+    Remove-Item $xboxInstallerPath -Force
+
+    return $false
+
+}
 
     }
 
@@ -375,19 +390,6 @@ Write-Host "Checking requirements..."
 Write-Host ""
 
 
-# OnlineFix check
-
-if (Test-OnlineFix $game.Path) {
-
-    Write-Host "[OK] OnlineFix64.dll detected" -ForegroundColor Green
-
-}
-else {
-
-    Write-Host "[INFO] OnlineFix64.dll not found"
-
-}
-
 
 
 
@@ -449,9 +451,14 @@ else {
 
     if ($answer -eq "Y") {
 
-        Install-XboxApp
+    if (!(Install-XboxApp)) {
+
+        Write-Host ""
+        Write-Host "Xbox App installation skipped due to download failure." -ForegroundColor Yellow
 
     }
+
+}
 
 }
 
