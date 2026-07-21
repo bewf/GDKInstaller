@@ -341,6 +341,7 @@ $searchPaths = $searchPaths | Select-Object -Unique
 
 $foundPaths = @{}
 $stopSearch = $false
+$rejectedGames = $false
 
 foreach ($path in $searchPaths) {
 
@@ -354,129 +355,188 @@ foreach ($path in $searchPaths) {
 
     try {
 
-    $searchJob = Start-Job -ArgumentList $path {
+        $searchJob = Start-Job -ArgumentList $path {
 
-        param($scanPath)
+            param($scanPath)
 
-        Get-ChildItem $scanPath `
-            -Filter "GDK_Helper.bat" `
+            Get-ChildItem $scanPath `
+            -Filter "AppxManifest.xml" `
             -File `
             -Recurse `
-            -Force `
-            -ErrorAction SilentlyContinue |
+            -Force |
             ForEach-Object {
-                $_.DirectoryName
+
+                $dir = $_.DirectoryName
+
+                if (
+                    (Test-Path "$dir\wdapp.exe") -and
+                    (Test-Path "$dir\MicrosoftGame.config")
+                ) {
+                    $dir
+                }
             }
 
-    }
-
-
-    $time = 0
-
-    while ($searchJob.State -eq "Running") {
-
-        Start-Sleep -Milliseconds 500
-
-        $time += 500
-
-
-        if ($time -ge 10000) {
-
-            Stop-Job $searchJob
-            Receive-Job $searchJob -ErrorAction SilentlyContinue | Out-Null
-            Remove-Job $searchJob -Force
-
-            break
-
         }
 
-    }
+        $time = 0
 
+        while ($searchJob.State -eq "Running") {
 
-if ($searchJob -and $searchJob.State -eq "Completed") {
+            Start-Sleep -Milliseconds 500
+            $time += 500
 
-    $results = Receive-Job $searchJob
+            if ($time -ge 10000) {
 
-    $foundAny = $false
+                Stop-Job $searchJob -ErrorAction SilentlyContinue
+                Remove-Job $searchJob -Force -ErrorAction SilentlyContinue
+                $searchJob = $null
+                break
 
-    foreach ($gamePath in $results) {
-
-        if (!$foundPaths.ContainsKey($gamePath)) {
-
-            $foundPaths[$gamePath] = $true
-
-            Write-Host ""
-            Write-Host "Found: $gamePath" -ForegroundColor Green
-
-            $games += [PSCustomObject]@{
-                Name = Split-Path $gamePath -Leaf
-                Path = $gamePath
             }
 
-            $foundAny = $true
-        }
-    }
-
-    if ($foundAny) {
-
-        Start-Sleep -Seconds 2
-
-        $answer = Read-Host "Is this the game you want to install? (Y/n)"
-
-        if ($answer -eq "" -or $answer -match "^[Yy]$") {
-            $stopSearch = $true
-            break
         }
 
-        Write-Host "Continuing search..."
+
+        if ($searchJob -and $searchJob.State -eq "Completed") {
+
+            $results = Receive-Job $searchJob
+
+            $foundAny = $false
+
+            foreach ($gamePath in $results) {
+
+                if (!$foundPaths.ContainsKey($gamePath)) {
+
+                    $foundPaths[$gamePath] = $true
+
+                    Write-Host ""
+                    Write-Host "Found: $gamePath" -ForegroundColor Green
+
+                    $games += [PSCustomObject]@{
+                        Name = Split-Path $gamePath -Leaf
+                        Path = $gamePath
+                    }
+
+                    $foundAny = $true
+                }
+            }
+
+
+            if ($foundAny) {
+
+                Start-Sleep -Seconds 2
+
+                $answer = Read-Host "Is this the game you want to install? (Y/n)"
+
+                if ($answer -eq "" -or $answer -match "^[Yy]$") {
+
+                    $game = [PSCustomObject]@{
+                        Name = Split-Path $gamePath -Leaf
+                        Path = $gamePath
+                    }
+
+                    $stopSearch = $true
+                    break
+
+                }
+
+                else {
+
+                    $rejectedGames = $true
+
+                    Write-Host "Continuing search..."
+
+                }
+
+
+            }
+
+
+            Remove-Job $searchJob -Force -ErrorAction SilentlyContinue
+
+        }
+
+    }
+    catch {
+
+        Remove-Job $searchJob -Force -ErrorAction SilentlyContinue
+
     }
 
-    Remove-Job $searchJob -Force -ErrorAction SilentlyContinue
 }
 
-catch {}
+if ($null -eq $game -and ($games.Count -eq 0 -or $rejectedGames)) {
 
+    if ($games.Count -eq 0) {
+        Write-Host "No GDK games found." -ForegroundColor Red
+    }
+    else {
+        Write-Host "No selected games. You can choose manually." -ForegroundColor Yellow
+    }
 
+    Write-Host ""
 
-}
-catch {}
-}
+    $manual = Read-Host "Would you like to select the game folder manually? (Y/n)"
 
-Write-Host ""
+    if ($manual -eq "" -or $manual -match '^[Yy]$') {
 
-if ($games.Count -eq 0) {
+        Add-Type -AssemblyName System.Windows.Forms
 
-    Write-Host "No GDK games found." -ForegroundColor Red
+        $dialog = New-Object System.Windows.Forms.FolderBrowserDialog
+        $dialog.Description = "Select your GDK game folder"
+
+        if ($dialog.ShowDialog() -ne [System.Windows.Forms.DialogResult]::OK) {
+            exit
+        }
+
+        $game = @{
+            Name = Split-Path $dialog.SelectedPath -Leaf
+            Path = $dialog.SelectedPath
+        }
+    if (
+        !(Test-Path (Join-Path $game.Path "wdapp.exe")) -or
+        !(Test-Path (Join-Path $game.Path "AppxManifest.xml"))
+    ) {
+
+    Write-Host ""
+    Write-Host "The selected folder is not a valid GDK game." -ForegroundColor Red
     Pause
     exit
 
 }
 
+    }
+    else {
 
-Write-Host "Found $($games.Count) game(s)."
-Write-Host ""
+        exit
 
-
-for ($i = 0; $i -lt $games.Count; $i++) {
-
-    Write-Host "$($i + 1). $($games[$i].Name)"
+    }
 
 }
 
+elseif ($null -eq $game) {
 
-Write-Host ""
+    Write-Host "Found $($games.Count) game(s)."
+    Write-Host ""
 
+    for ($i = 0; $i -lt $games.Count; $i++) {
 
-do {
+        Write-Host "$($i + 1). $($games[$i].Name)"
 
-    $choice = Read-Host "Choose a game"
+    }
+
+    Write-Host ""
+
+    do {
+
+        $choice = Read-Host "Choose a game"
+
+    }
+    until ($choice -match '^\d+$' -and $choice -ge 1 -and $choice -le $games.Count)
+
+    $game = $games[$choice - 1]
 
 }
-until ($choice -match '^\d+$' -and $choice -ge 1 -and $choice -le $games.Count)
-
-
-
-$game = $games[$choice - 1]
 
 
 Set-Location $game.Path
@@ -666,7 +726,7 @@ if ($identity) {
 
             if ($again -eq "" -or $again -match "^[Yy]$") {
 
-                Start-Process powershell "-ExecutionPolicy Bypass -File `"$PSCommandPath`""
+                Start-Process powershell "-ExecutionPolicy Bypass -File `"$PSCommandPath`"" -Verb RunAs
             }
 
             exit
@@ -850,7 +910,7 @@ $again = Read-Host "Would you like to install another game? (Y/n)"
 
 if ($again -eq "" -or $again -match "^[Yy]$") {
 
-    Start-Process powershell "-ExecutionPolicy Bypass -File `"$PSCommandPath`""
+    Start-Process powershell "-ExecutionPolicy Bypass -File `"$PSCommandPath`"" -Verb RunAs
 
 }
 
