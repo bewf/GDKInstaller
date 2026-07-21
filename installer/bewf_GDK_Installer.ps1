@@ -109,7 +109,10 @@ function Test-DefenderExclusion($path) {
 
     foreach ($exclusion in $exclusions) {
 
-        if ($path.StartsWith($exclusion)) {
+        if (
+        $path.TrimEnd('\').StartsWith($exclusion.TrimEnd('\') + '\') -or
+        $path.TrimEnd('\') -eq $exclusion.TrimEnd('\')
+    ) {
 
             return $true
 
@@ -128,7 +131,47 @@ function Add-GameExclusion($path) {
 
     try {
 
-        Add-MpPreference -ExclusionPath $path
+        $exclusionPath = $path
+
+        $parent = Split-Path $path -Parent
+
+        # Never exclude drive roots
+        $parentRoot = [System.IO.Path]::GetPathRoot($parent)
+
+        # Common Windows/user folders that should never be excluded
+        $blockedFolders = @(
+            "Desktop",
+            "Downloads",
+            "Documents",
+            "Pictures",
+            "Videos",
+            "Music",
+            "OneDrive",
+            "Windows",
+            "Program Files",
+            "Program Files (x86)",
+            "Users",
+            "Public",
+            "AppData"
+        )
+
+        $parentName = Split-Path $parent -Leaf
+
+        if (
+            $parent -ne $parentRoot -and
+            !($blockedFolders -contains $parentName) -and
+            $null -ne (Split-Path $parent -Parent)
+        ) {
+
+            $exclusionPath = $parent
+
+        }
+
+
+        Add-MpPreference -ExclusionPath $exclusionPath
+
+        Write-Host "Defender exclusion added:"
+        Write-Host $exclusionPath
 
         return $true
 

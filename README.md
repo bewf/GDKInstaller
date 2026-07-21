@@ -7,13 +7,13 @@ A simple automated installer for GDK games from OFME.
 ## How it works
 
 1. **Finds GDK games**
-   - Searches all drives for `AppManifest.xml`
+   - Searches all drives for `AppxManifest.xml`
    - Uses the folder containing it as the GDK game location
    - Checks that the GDK package contains:
      - `wdapp.exe`
      - `AppxManifest.xml`
-     - `MicrosoftGame.config
-   - If it fails to automatically find a game, gives the user the choice to pick one manually.
+     - `MicrosoftGame.config`
+   - If it can't find a game automatically, lets the user pick one manually
 
 2. **Checks requirements**
    - Checks for:
@@ -21,6 +21,7 @@ A simple automated installer for GDK games from OFME.
      - Xbox App
      - Gaming Services
      - Microsoft.DirectXRuntime
+   - If any requirements are missing, automatically fixes it with user permission
 
 3. **Installs the game**
    - Enables Developer Mode temporarily
