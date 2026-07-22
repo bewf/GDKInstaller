@@ -425,16 +425,6 @@ if ($UseCurrentDirectory) {
         Path = $gamePath
     }
 
-    Write-Host ""
-    Write-Host "DEBUG CURRENT PATH:"
-    Write-Host $game.Path
-    Write-Host ""
-
-    Write-Host "DEBUG FILES:"
-    Get-ChildItem $game.Path | Select-Object Name
-
-    Write-Host ""
-
     if (!(Test-GDKFolder $game.Path)) {
 
         Write-Host ""
@@ -445,6 +435,7 @@ if ($UseCurrentDirectory) {
     }
 
 }
+
 else {
 
     Write-Host "Searching for GDK games..."
