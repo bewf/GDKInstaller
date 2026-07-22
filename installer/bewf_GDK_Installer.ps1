@@ -54,9 +54,11 @@ function Test-GDKFolder($path) {
 
     $gdkIndicators = @(
         "wdapp.exe",
+        "GDK_Helper.bat",
         "gdk_helper.exe",
         "MicrosoftGame.config",
-        "AppxManifest.xml"
+        "AppxManifest.xml",
+        "appxmanifest.xml"
     )
 
     foreach ($file in $gdkIndicators) {
@@ -379,6 +381,9 @@ if ($UseCurrentDirectory) {
         Name = Split-Path $PWD.Path -Leaf
         Path = $PWD.Path
     }
+
+    Write-Host "Checking:"
+    Write-Host $game.Path
 
     if (!(Test-GDKFolder $game.Path)) {
 
