@@ -4,10 +4,35 @@
 
 param(
     [switch]$UseCurrentDirectory,
-    [string]$GamePath
+    [string]$ContextFile
 )
 
 $ErrorActionPreference = "SilentlyContinue"
+
+function Get-LaunchContext($file) {
+
+    if (Test-Path $file) {
+
+        $json = Get-Content $file -Raw | ConvertFrom-Json
+
+        return $json.GamePath
+
+    }
+
+    return $null
+}
+function Save-LaunchContext($path) {
+
+    $context = @{
+        GamePath = $path
+    }
+
+    $contextFile = "$env:TEMP\bewfgdk_context.json"
+
+    $context | ConvertTo-Json | Out-File $contextFile -Encoding UTF8
+
+    return $contextFile
+}
 
 # Relaunch as Administrator if needed
 $identity = [Security.Principal.WindowsIdentity]::GetCurrent()
@@ -15,20 +40,24 @@ $principal = New-Object Security.Principal.WindowsPrincipal($identity)
 
 if (-not $principal.IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)) {
 
-    $currentPath = (Get-Location).Path
+$currentPath = (Get-Location).Path
 
-    $launchArgs = "-ExecutionPolicy Bypass -File `"$PSCommandPath`""
+$launchArgs = "-ExecutionPolicy Bypass -File `"$PSCommandPath`""
 
-    if ($UseCurrentDirectory) {
-        $launchArgs += " -UseCurrentDirectory"
-        $launchArgs += " -GamePath `"$currentPath`""
-    }
+if ($UseCurrentDirectory) {
 
-    Start-Process powershell `
-    -ArgumentList $launchArgs `
-    -Verb RunAs
+    $contextFile = Save-LaunchContext $currentPath
 
-    exit
+    $launchArgs += " -UseCurrentDirectory"
+    $launchArgs += " -ContextFile `"$contextFile`""
+
+}
+
+Start-Process powershell `
+-ArgumentList $launchArgs `
+-Verb RunAs
+
+exit
 }
 
 Clear-Host
@@ -56,6 +85,7 @@ $githubRelease = "https://github.com/bewf/GDKInstaller/releases/download/v1.0"
 # --------------------------
 # Functions
 # --------------------------
+
 
 function Test-GDKFolder($path) {
 
@@ -384,10 +414,9 @@ Write-Host ""
 
 if ($UseCurrentDirectory) {
 
-    if ($GamePath) {
-        $gamePath = $GamePath
-    }
-    else {
+    $gamePath = Get-LaunchContext $ContextFile
+
+    if (!$gamePath) {
         $gamePath = (Get-Location).Path
     }
 
@@ -418,7 +447,7 @@ if ($UseCurrentDirectory) {
 }
 else {
 
-Write-Host "Searching for GDK games..."
+    Write-Host "Searching for GDK games..."
 Write-Host "This may take a minute depending on drive speed."
 Write-Host ""
 
@@ -1050,7 +1079,20 @@ $again = Read-Host "Would you like to install another game? (Y/n)"
 
 if ($again -eq "" -or $again -match "^[Yy]$") {
 
-    Start-Process powershell "-ExecutionPolicy Bypass -File `"$PSCommandPath`"" -Verb RunAs
+    $launchArgs = "-ExecutionPolicy Bypass -File `"$PSCommandPath`""
+
+    if ($UseCurrentDirectory) {
+
+        $contextFile = Save-LaunchContext $game.Path
+
+        $launchArgs += " -UseCurrentDirectory"
+        $launchArgs += " -ContextFile `"$contextFile`""
+
+    }
+
+    Start-Process powershell `
+    -ArgumentList $launchArgs `
+    -Verb RunAs
 
 }
 
