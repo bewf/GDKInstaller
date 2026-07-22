@@ -50,3 +50,11 @@ Open PowerShell and run:
 
 ```powershell
 irm https://raw.githubusercontent.com/bewf/GDKInstaller/main/launcher.ps1 | iex
+```
+## Credits
+
+Special thanks to:
+
+* **Kelevra**: Finding a good UWP DirectX Runtime installer
+* **StaySharp**: Troubleshooting info and keeping me informed
+* **bewf (me)**: Writing the thing
