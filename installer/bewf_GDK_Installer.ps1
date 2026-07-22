@@ -14,6 +14,8 @@ $principal = New-Object Security.Principal.WindowsPrincipal($identity)
 
 if (-not $principal.IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)) {
 
+    $currentPath = (Get-Location).Path
+
     $launchArgs = "-ExecutionPolicy Bypass -File `"$PSCommandPath`""
 
     if ($UseCurrentDirectory) {
@@ -23,7 +25,8 @@ if (-not $principal.IsInRole([Security.Principal.WindowsBuiltInRole]::Administra
     Start-Process powershell `
     -ArgumentList $launchArgs `
     -Verb RunAs `
-    -WorkingDirectory (Get-Location).Path
+    -WorkingDirectory $currentPath
+
     exit
 }
 
@@ -465,25 +468,40 @@ foreach ($path in $searchPaths) {
 
     try {
 
-        $searchJob = Start-Job -ArgumentList $path {
+$searchJob = Start-Job -ArgumentList $path {
 
-            param($scanPath)
+    param($scanPath)
 
-            Get-ChildItem $scanPath `
-            -Filter "AppxManifest.xml" `
-            -File `
-            -Recurse `
-            -Force |
-            ForEach-Object {
+    Get-ChildItem $scanPath `
+    -Filter "AppxManifest.xml" `
+    -File `
+    -Recurse `
+    -Force |
+    ForEach-Object {
 
-                $dir = $_.DirectoryName
+        $dir = $_.DirectoryName
 
-                if (Test-GDKFolder $dir) {
-                    $dir
-                }
+        $gdkIndicators = @(
+            "wdapp.exe",
+            "GDK_Helper.bat",
+            "gdk_helper.exe",
+            "MicrosoftGame.config",
+            "AppxManifest.xml",
+            "appxmanifest.xml"
+        )
+
+        foreach ($file in $gdkIndicators) {
+
+            if (Test-Path (Join-Path $dir $file)) {
+                $dir
+                break
             }
 
         }
+
+    }
+
+}
 
         $time = 0
 
@@ -492,7 +510,7 @@ foreach ($path in $searchPaths) {
             Start-Sleep -Milliseconds 500
             $time += 500
 
-            if ($time -ge 10000) {
+            if ($time -ge 69420) {
 
                 Stop-Job $searchJob -ErrorAction SilentlyContinue
                 Remove-Job $searchJob -Force -ErrorAction SilentlyContinue
