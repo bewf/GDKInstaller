@@ -20,7 +20,10 @@ if (-not $principal.IsInRole([Security.Principal.WindowsBuiltInRole]::Administra
         $launchArgs += " -UseCurrentDirectory"
     }
 
-    Start-Process powershell $launchArgs -Verb RunAs
+    Start-Process powershell `
+    -ArgumentList $launchArgs `
+    -Verb RunAs `
+    -WorkingDirectory (Get-Location).Path
     exit
 }
 
@@ -377,9 +380,11 @@ Write-Host ""
 
 if ($UseCurrentDirectory) {
 
+    $gamePath = (Get-Location).Path
+
     $game = @{
-        Name = Split-Path $PWD.Path -Leaf
-        Path = $PWD.Path
+        Name = Split-Path $gamePath -Leaf
+        Path = $gamePath
     }
 
     Write-Host ""
@@ -834,7 +839,10 @@ if ($identity) {
                     $launchArgs += " -UseCurrentDirectory"
                 }
 
-                Start-Process powershell $launchArgs -Verb RunAs
+                Start-Process powershell `
+                -ArgumentList $launchArgs `
+                -Verb RunAs `
+                -WorkingDirectory (Get-Location).Path
             }
 
             exit
