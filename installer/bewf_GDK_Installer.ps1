@@ -3,7 +3,8 @@
 # =====================================================
 
 param(
-    [switch]$UseCurrentDirectory
+    [switch]$UseCurrentDirectory,
+    [string]$GamePath
 )
 
 $ErrorActionPreference = "SilentlyContinue"
@@ -20,12 +21,12 @@ if (-not $principal.IsInRole([Security.Principal.WindowsBuiltInRole]::Administra
 
     if ($UseCurrentDirectory) {
         $launchArgs += " -UseCurrentDirectory"
+        $launchArgs += " -GamePath `"$currentPath`""
     }
 
     Start-Process powershell `
     -ArgumentList $launchArgs `
-    -Verb RunAs `
-    -WorkingDirectory $currentPath
+    -Verb RunAs
 
     exit
 }
@@ -383,7 +384,12 @@ Write-Host ""
 
 if ($UseCurrentDirectory) {
 
-    $gamePath = (Get-Location).Path
+    if ($GamePath) {
+        $gamePath = $GamePath
+    }
+    else {
+        $gamePath = (Get-Location).Path
+    }
 
     $game = @{
         Name = Split-Path $gamePath -Leaf
