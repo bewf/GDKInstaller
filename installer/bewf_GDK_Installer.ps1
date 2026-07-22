@@ -2,6 +2,10 @@
 # bewf GDK Installer
 # =====================================================
 
+param(
+    [switch]$UseCurrentDirectory
+)
+
 $ErrorActionPreference = "SilentlyContinue"
 
 # Relaunch as Administrator if needed
@@ -9,7 +13,14 @@ $identity = [Security.Principal.WindowsIdentity]::GetCurrent()
 $principal = New-Object Security.Principal.WindowsPrincipal($identity)
 
 if (-not $principal.IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)) {
-    Start-Process powershell "-ExecutionPolicy Bypass -File `"$PSCommandPath`"" -Verb RunAs
+
+    $launchArgs = "-ExecutionPolicy Bypass -File `"$PSCommandPath`""
+
+    if ($UseCurrentDirectory) {
+        $launchArgs += " -UseCurrentDirectory"
+    }
+
+    Start-Process powershell $launchArgs -Verb RunAs
     exit
 }
 
@@ -342,6 +353,29 @@ Write-Host ""
 # Search
 # --------------------------
 
+if ($UseCurrentDirectory) {
+
+    $game = @{
+        Name = Split-Path $PWD.Path -Leaf
+        Path = $PWD.Path
+    }
+
+    if (
+        !(Test-Path (Join-Path $game.Path "wdapp.exe")) -or
+        !(Test-Path (Join-Path $game.Path "AppxManifest.xml")) -or
+        !(Test-Path (Join-Path $game.Path "MicrosoftGame.config"))
+    ) {
+
+        Write-Host ""
+        Write-Host "The current folder is not a valid GDK game." -ForegroundColor Red
+        Pause
+        exit
+
+    }
+
+}
+else {
+
 Write-Host "Searching for GDK games..."
 Write-Host "This may take a minute depending on drive speed."
 Write-Host ""
@@ -581,7 +615,7 @@ elseif ($null -eq $game) {
 
 }
 
-
+}
 Set-Location $game.Path
 
 
@@ -769,7 +803,13 @@ if ($identity) {
 
             if ($again -eq "" -or $again -match "^[Yy]$") {
 
-                Start-Process powershell "-ExecutionPolicy Bypass -File `"$PSCommandPath`"" -Verb RunAs
+                $launchArgs = "-ExecutionPolicy Bypass -File `"$PSCommandPath`""
+
+                if ($UseCurrentDirectory) {
+                    $launchArgs += " -UseCurrentDirectory"
+                }
+
+                Start-Process powershell $launchArgs -Verb RunAs
             }
 
             exit
