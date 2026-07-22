@@ -50,6 +50,26 @@ $githubRelease = "https://github.com/bewf/GDKInstaller/releases/download/v1.0"
 # Functions
 # --------------------------
 
+function Test-GDKFolder($path) {
+
+    $gdkIndicators = @(
+        "wdapp.exe",
+        "gdk_helper.exe",
+        "MicrosoftGame.config",
+        "AppxManifest.xml"
+    )
+
+    foreach ($file in $gdkIndicators) {
+
+        if (Test-Path (Join-Path $path $file)) {
+            return $true
+        }
+
+    }
+
+    return $false
+
+}
 function Test-DirectXRuntime {
 
     $dx = Get-AppxPackage -Name "Microsoft.DirectX*"
@@ -360,11 +380,7 @@ if ($UseCurrentDirectory) {
         Path = $PWD.Path
     }
 
-    if (
-        !(Test-Path (Join-Path $game.Path "wdapp.exe")) -or
-        !(Test-Path (Join-Path $game.Path "AppxManifest.xml")) -or
-        !(Test-Path (Join-Path $game.Path "MicrosoftGame.config"))
-    ) {
+    if (!(Test-GDKFolder $game.Path)) {
 
         Write-Host ""
         Write-Host "The current folder is not a valid GDK game." -ForegroundColor Red
@@ -445,10 +461,7 @@ foreach ($path in $searchPaths) {
 
                 $dir = $_.DirectoryName
 
-                if (
-                    (Test-Path "$dir\wdapp.exe") -and
-                    (Test-Path "$dir\MicrosoftGame.config")
-                ) {
+                if (Test-GDKFolder $dir) {
                     $dir
                 }
             }
