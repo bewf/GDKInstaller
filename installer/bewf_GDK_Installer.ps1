@@ -350,7 +350,7 @@ function Install-Game {
     Write-Host "Running wdapp..."
 
 
-    $output = & ".\wdapp.exe" register ".\AppxManifest.xml" 2>&1
+    $output = cmd /c ".\wdapp.exe register .\AppxManifest.xml" 2>&1
 
 
     foreach ($line in $output) {
@@ -1009,13 +1009,28 @@ reg add `
 /v AllowDevelopmentWithoutDevLicense `
 /t REG_DWORD `
 /d 1 `
-/f
+/f | Out-Null
 
-Get-ItemProperty `
+
+$devMode = Get-ItemProperty `
 "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\AppModelUnlock" `
--Name AllowDevelopmentWithoutDevLicense
+-Name AllowDevelopmentWithoutDevLicense `
+-ErrorAction SilentlyContinue
 
-Write-Host "Done."
+
+if ($devMode.AllowDevelopmentWithoutDevLicense -ne 1) {
+
+    Write-Host ""
+    Write-Host "Failed to enable Developer Mode." -ForegroundColor Red
+    Write-Host "Enable it manually in Windows Settings:"
+    Write-Host "Settings > System > For developers > Developer Mode"
+    Pause
+    exit
+
+}
+
+
+Write-Host "Developer Mode enabled." -ForegroundColor Green
 
 
 
