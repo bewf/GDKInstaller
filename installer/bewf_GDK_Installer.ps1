@@ -876,7 +876,21 @@ Write-Host ""
 
 Write-Host "Clearing Microsoft Store cache..."
 
-Start-Process wsreset.exe -Wait
+$storePackage = Get-AppxPackage -Name Microsoft.WindowsStore
+
+if ($storePackage) {
+
+    $storeName = $storePackage.PackageFamilyName
+
+    $storeCache = "$env:LOCALAPPDATA\Packages\$storeName\LocalCache"
+
+    if (Test-Path $storeCache) {
+
+        Remove-Item "$storeCache\*" -Recurse -Force -ErrorAction SilentlyContinue
+
+    }
+
+}
 
 Write-Host "Done."
 
