@@ -349,14 +349,10 @@ function Install-Game {
     Write-Host ""
     Write-Host "Running wdapp..."
 
-
-    $output = cmd /c ".\wdapp.exe register .\AppxManifest.xml" 2>&1
-
+    $output = & ".\wdapp.exe" register ".\AppxManifest.xml" 2>&1
 
     foreach ($line in $output) {
-
         Write-Host $line
-
     }
 
 
