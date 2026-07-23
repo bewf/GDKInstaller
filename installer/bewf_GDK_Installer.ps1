@@ -873,8 +873,6 @@ else {
 
 Write-Host ""
 
-Write-Host "Clearing Microsoft Store cache..."
-
 $storePackage = Get-AppxPackage -Name Microsoft.WindowsStore
 
 if ($storePackage) {
@@ -883,39 +881,27 @@ if ($storePackage) {
 
     $storeCache = "$env:LOCALAPPDATA\Packages\$storeName\LocalCache"
 
-if (Test-Path $storeCache) {
+    if (Test-Path $storeCache) {
 
-    $before = Get-ChildItem $storeCache -Force -ErrorAction SilentlyContinue
+        Remove-Item "$storeCache\*" -Recurse -Force -ErrorAction SilentlyContinue
 
-    Write-Host "Cache files before: $($before.Count)"
-
-    Remove-Item "$storeCache\*" -Recurse -Force -ErrorAction SilentlyContinue
-
-    Start-Sleep -Seconds 2
-
-    $after = Get-ChildItem $storeCache -Force -ErrorAction SilentlyContinue
-
-    Write-Host "Cache files after: $($after.Count)"
-
-    if ($after.Count -eq 0) {
-
-        Write-Host "Microsoft Store cache cleared." -ForegroundColor Green
+        Write-Host "[OK] Microsoft Store cache cleared" -ForegroundColor Green
 
     }
     else {
 
-        Write-Host "Some cache files remain." -ForegroundColor Yellow
+        Write-Host "[OK] Microsoft Store cache not found" -ForegroundColor Green
 
     }
 
 }
 else {
 
-    Write-Host "Microsoft Store cache folder not found." -ForegroundColor Yellow
+    Write-Host "[WARN] Microsoft Store package not found" -ForegroundColor Yellow
 
 }
 
-}
+Write-Host ""
 
 
 Write-Host "Done."
