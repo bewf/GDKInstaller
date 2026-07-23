@@ -109,6 +109,27 @@ function Test-GDKFolder($path) {
     return $false
 
 }
+
+function Find-ChildGDKFolders($path) {
+
+    $games = @()
+
+    Get-ChildItem $path -Directory -ErrorAction SilentlyContinue | ForEach-Object {
+
+        if (Test-GDKFolder $_.FullName) {
+
+            $games += [PSCustomObject]@{
+                Name = $_.Name
+                Path = $_.FullName
+            }
+
+        }
+
+    }
+
+    return $games
+
+}
 function Test-DirectXRuntime {
 
     $dx = Get-AppxPackage -Name "Microsoft.DirectX*"
@@ -440,9 +461,51 @@ if ($UseCurrentDirectory) {
     if (!(Test-GDKFolder $game.Path)) {
 
         Write-Host ""
-        Write-Host "The current folder is not a valid GDK game." -ForegroundColor Red
-        Pause
-        exit
+        Write-Host "Current folder is not a GDK game, checking child folders." -ForegroundColor Yellow
+
+        $games = Find-ChildGDKFolders $game.Path
+
+        if ($games.Count -eq 1) {
+
+            $game = $games[0]
+
+            Write-Host ""
+            Write-Host "Found a GDK game in:"
+            Write-Host $game.Path
+
+        }
+        elseif ($games.Count -gt 1) {
+
+            Write-Host ""
+            Write-Host "Multiple GDK games found."
+            Write-Host ""
+
+            for ($i = 0; $i -lt $games.Count; $i++) {
+
+                Write-Host "$($i + 1). $($games[$i].Name)"
+
+            }
+
+            Write-Host ""
+
+            do {
+
+                $choice = Read-Host "Select a game"
+
+            }
+            until ($choice -match '^\d+$' -and $choice -ge 1 -and $choice -le $games.Count)
+
+            $game = $games[$choice - 1]
+
+        }
+        else {
+
+            Write-Host ""
+            Write-Host "The current folder is not a valid GDK game." -ForegroundColor Red
+            Pause
+            exit
+
+        }
 
     }
 
