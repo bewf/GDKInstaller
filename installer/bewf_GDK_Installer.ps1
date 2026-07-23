@@ -870,7 +870,7 @@ else {
 
 }
 
-
+Write-Host "CACHE TEST START"
 
 Write-Host ""
 
@@ -891,6 +891,8 @@ if ($storePackage) {
     }
 
 }
+
+Write-Host "CACHE TEST END"
 
 Write-Host "Done."
 
