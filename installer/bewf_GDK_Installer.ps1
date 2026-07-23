@@ -871,7 +871,6 @@ else {
 }
 
 
-Write-Host ""
 
 $storePackage = Get-AppxPackage -Name Microsoft.WindowsStore
 
