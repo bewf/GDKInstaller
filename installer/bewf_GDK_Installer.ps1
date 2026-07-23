@@ -1009,8 +1009,11 @@ reg add `
 /v AllowDevelopmentWithoutDevLicense `
 /t REG_DWORD `
 /d 1 `
-/f | Out-Null
+/f
 
+Get-ItemProperty `
+"HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\AppModelUnlock" `
+-Name AllowDevelopmentWithoutDevLicense
 
 Write-Host "Done."
 
