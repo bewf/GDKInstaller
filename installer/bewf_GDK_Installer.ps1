@@ -282,6 +282,22 @@ function Test-XboxApp {
 
 }
 
+function Test-XboxGameBar {
+
+    $gameBar = Get-AppxPackage `
+        -Name "Microsoft.XboxGamingOverlay" `
+        -ErrorAction SilentlyContinue
+
+    return ($null -ne $gameBar)
+
+}
+
+function Install-XboxGameBar {
+
+    Start-Process "ms-windows-store://pdp/?productid=9NZKPSTSNW4P"
+
+}
+
 
 function Install-XboxApp {
 
@@ -816,7 +832,24 @@ else {
 
 }
 
+if (Test-XboxGameBar) {
 
+    Write-Host "[OK] Xbox Game Bar installed" -ForegroundColor Green
+
+}
+else {
+
+    Write-Host "[WARN] Xbox Game Bar missing" -ForegroundColor Yellow
+
+    $answer = Read-Host "Open Xbox Game Bar installer? (Y/n)"
+
+    if ($answer -eq "" -or $answer -match "^[Yy]$") {
+
+        Install-XboxGameBar
+
+    }
+
+}
 
 if (Test-DirectXRuntime) {
 
@@ -841,7 +874,13 @@ else {
 
 Write-Host ""
 
+Write-Host "Clearing Microsoft Store cache..."
 
+Start-Process wsreset.exe -Wait
+
+Write-Host "Done."
+
+Write-Host ""
 
 # --------------------------
 # Existing Install Check
