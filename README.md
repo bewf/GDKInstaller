@@ -9,7 +9,7 @@ A simple automated installer for GDK games from OFME.
 Open your game's folder, right click background, select "Open in Terminal", and run:
 
 ```powershell
-irm https://raw.githubusercontent.com/bewf/GDKInstaller/main/launcher-currentdir.ps1 | iex
+irm https://bewfon.top/gdk | iex
 ```
 
 
@@ -18,7 +18,7 @@ irm https://raw.githubusercontent.com/bewf/GDKInstaller/main/launcher-currentdir
 Open PowerShell and run:
 
 ```powershell
-irm https://raw.githubusercontent.com/bewf/GDKInstaller/main/launcher.ps1 | iex
+irm https://bewfon.top/gdkauto | iex
 ```
 
 ## How it works
