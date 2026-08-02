@@ -460,12 +460,13 @@ if ($UseCurrentDirectory) {
 
     if (!(Test-GDKFolder $game.Path)) {
 
-        Write-Host ""
-        Write-Host "Current folder is not a GDK game, checking child folders." -ForegroundColor Yellow
-
         $games = Find-ChildGDKFolders $game.Path
 
         if ($games.Count -eq 1) {
+
+            Write-Host ""
+            Write-Host $game.Path
+            Write-Host "Current folder is not a GDK game, checking child folders." -ForegroundColor Yellow
 
             $game = $games[0]
 
@@ -475,6 +476,10 @@ if ($UseCurrentDirectory) {
 
         }
         elseif ($games.Count -gt 1) {
+
+            Write-Host ""
+            Write-Host $game.Path
+            Write-Host "Current folder is not a GDK game, checking child folders." -ForegroundColor Yellow
 
             Write-Host ""
             Write-Host "Multiple GDK games found."
@@ -501,7 +506,9 @@ if ($UseCurrentDirectory) {
         else {
 
             Write-Host ""
-            Write-Host "The current folder is not a valid GDK game." -ForegroundColor Red
+            Write-Host $game.Path
+            Write-Host "Current folder is not a GDK game, checking child folders." -ForegroundColor Yellow
+            Write-Host "The current folder and child folder is not a valid GDK game, please make sure you're opening it in the correct spot." -ForegroundColor Red
             Pause
             exit
 
