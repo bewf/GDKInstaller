@@ -1,6 +1,6 @@
 # bewf GDK Installer
 
-A simple automated installer for GDK games from OFME.
+An overcomplicated automated installer for GDK games.
 
 ## Usage
 
