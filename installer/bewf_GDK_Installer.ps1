@@ -110,11 +110,16 @@ function Test-GDKFolder($path) {
 
 }
 
+
 function Find-ChildGDKFolders($path) {
 
     $games = @()
 
-    Get-ChildItem $path -Directory -ErrorAction SilentlyContinue | ForEach-Object {
+    Get-ChildItem $path `
+        -Directory `
+        -Recurse `
+        -ErrorAction SilentlyContinue |
+    ForEach-Object {
 
         if (Test-GDKFolder $_.FullName) {
 
@@ -130,6 +135,7 @@ function Find-ChildGDKFolders($path) {
     return $games
 
 }
+
 function Test-DirectXRuntime {
 
     $dx = Get-AppxPackage -Name "Microsoft.DirectX*"
