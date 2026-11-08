@@ -9,7 +9,7 @@ An overcomplicated automated installer for GDK games.
 Open your game's folder, right click background, select "Open in Terminal", and run:
 
 ```powershell
-irm https://bewfon.top/gdk | iex
+irm https://gdk.bewfon.top/ | iex
 ```
 
 
@@ -18,7 +18,7 @@ irm https://bewfon.top/gdk | iex
 Open PowerShell and run:
 
 ```powershell
-irm https://bewfon.top/gdkauto | iex
+irm https://gdk.bewfon.top/auto | iex
 ```
 
 ## How it works
